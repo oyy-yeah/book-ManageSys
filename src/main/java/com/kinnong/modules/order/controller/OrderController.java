@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kinnong.common.utils.Query;
 import com.kinnong.common.utils.R;
+import com.kinnong.common.annotation.RequireRole;
+import com.kinnong.common.constant.RoleConstant;
 import com.kinnong.modules.book.service.BookService;
 import com.kinnong.modules.member.service.MemberService;
 import com.kinnong.modules.order.entity.OrderEntity;
@@ -26,6 +28,7 @@ import com.kinnong.modules.order.service.OrderService;
  */
 @RestController
 @RequestMapping("/order")
+@RequireRole(RoleConstant.ADMIN)
 public class OrderController {
 	@Autowired
 	private OrderService orderService;

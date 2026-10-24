@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kinnong.common.utils.Query;
 import com.kinnong.common.utils.R;
+import com.kinnong.common.annotation.RequireRole;
+import com.kinnong.common.constant.RoleConstant;
 import com.kinnong.modules.order.entity.OrderEvaluationEntity;
 import com.kinnong.modules.order.service.OrderEvaluationService;
 
@@ -24,6 +26,7 @@ import com.kinnong.modules.order.service.OrderEvaluationService;
  */
 @RestController
 @RequestMapping("/evaluation")
+@RequireRole(RoleConstant.ADMIN)
 public class OrderEvaluationController {
 	@Autowired
 	private OrderEvaluationService orderEvaluationService;

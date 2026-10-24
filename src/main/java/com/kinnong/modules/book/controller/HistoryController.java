@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kinnong.common.annotation.RequireRole;
+import com.kinnong.common.constant.RoleConstant;
 import com.kinnong.modules.book.entity.HistoryEntity;
 import com.kinnong.modules.book.service.HistoryService;
 import com.kinnong.common.utils.Query;
@@ -26,6 +28,7 @@ import com.kinnong.common.utils.R;
  */
 @RestController
 @RequestMapping("history")
+@RequireRole(RoleConstant.ADMIN)
 public class HistoryController {
 	@Autowired
 	private HistoryService historyService;

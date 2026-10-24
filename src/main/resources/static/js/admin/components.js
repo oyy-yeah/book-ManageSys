@@ -147,6 +147,7 @@ Vue.component("main-sidebar", {
           name: "统计分析",
           url: "/admin/index.html",
           perms: null,
+          roles: ["ADMIN"],
           type: 1,
           icon: "fa fa fa-bar-chart",
           orderNum: 0,
@@ -160,6 +161,7 @@ Vue.component("main-sidebar", {
           name: "用户管理",
           url: "/admin/member/member.html",
           perms: null,
+          roles: ["ADMIN"],
           type: 1,
           icon: "fa fa-user",
           orderNum: 1,
@@ -173,6 +175,7 @@ Vue.component("main-sidebar", {
           name: "广告管理",
           url: "/admin/advert/advert.html",
           perms: null,
+          roles: ["ADMIN"],
           type: 1,
           icon: "fa fa-flag",
           orderNum: 1,
@@ -186,6 +189,7 @@ Vue.component("main-sidebar", {
           name: "分类管理",
           url: "/admin/book/category.html",
           perms: null,
+          roles: ["ADMIN"],
           type: 1,
           icon: "fa fa-navicon",
           orderNum: 2,
@@ -199,6 +203,7 @@ Vue.component("main-sidebar", {
           name: "图书管理",
           url: "/admin/book/book.html",
           perms: null,
+          roles: ["ADMIN"],
           type: 1,
           icon: "fa fa-shopping-bag",
           orderNum: 3,
@@ -212,6 +217,7 @@ Vue.component("main-sidebar", {
           name: "借阅管理",
           url: "/admin/order/order.html",
           perms: null,
+          roles: ["ADMIN"],
           type: 1,
           icon: "fa fa-file-text",
           orderNum: 4,
@@ -225,6 +231,7 @@ Vue.component("main-sidebar", {
           name: "评价管理",
           url: "/admin/order/evaluation.html",
           perms: null,
+          roles: ["ADMIN"],
           type: 1,
           icon: "fa fa-navicon",
           orderNum: 2,
@@ -238,9 +245,24 @@ Vue.component("main-sidebar", {
           name: "管理员管理",
           url: "/admin/sys/user.html",
           perms: null,
+          roles: ["ADMIN"],
           type: 1,
           icon: "fa fa-cog",
           orderNum: 6,
+          open: null,
+          list: [],
+        },
+        {
+          menuId: 81,
+          parentId: 0,
+          parentName: null,
+          name: "押金退还审核",
+          url: "/admin/member/depositRefund.html",
+          perms: null,
+          roles: ["REVIEWER", "ADMIN"],
+          type: 1,
+          icon: "fa fa-check-square-o",
+          orderNum: 0,
           open: null,
           list: [],
         },
@@ -268,6 +290,11 @@ Vue.component("main-sidebar", {
     if (params) {
       this.activeMenuId = params.menuId;
     }
+    // 按当前登录账号的角色过滤导航菜单（ADMIN 管理员 / REVIEWER 审核人员）
+    var role = localStorage.getItem("role") || "";
+    this.menuList = this.menuList.filter(function (item) {
+      return !item.roles || item.roles.indexOf(role) >= 0;
+    });
   },
   mounted: function () {},
 });

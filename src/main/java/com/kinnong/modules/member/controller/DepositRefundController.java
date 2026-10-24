@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kinnong.common.annotation.RequireRole;
+import com.kinnong.common.constant.RoleConstant;
 import com.kinnong.common.utils.Query;
 import com.kinnong.common.utils.R;
 import com.kinnong.modules.member.entity.DepositRefundEntity;
@@ -18,11 +20,15 @@ import com.kinnong.modules.member.service.DepositRefundService;
 /**
  * 押金退还申请管理
  *
+ * <p>权限设置：管理员与审核人员均可查看待审核的押金退还申请；
+ * 审核操作记录真实的审核人账号（从 token 中解析），不再写死为 1 号用户。</p>
+ *
  * @author ZJL
  * @email 1044869436@qq.com
  */
 @RestController
 @RequestMapping("/depositRefund")
+@RequireRole({ RoleConstant.ADMIN, RoleConstant.REVIEWER })
 public class DepositRefundController {
     
     @Autowired
@@ -54,7 +60,7 @@ public class DepositRefundController {
      * 审核
      */
     @RequestMapping("/audit")
-    public R audit(@RequestBody DepositRefundEntity depositRefund) {
+    public R audit(@RequestBody DepositRefundEntity depositRefund, @RequestAttribute Long userId) {
         if (depositRefund.getId() == null || depositRefund.getStatus() == null) {
             return R.error("参数不完整");
         }
@@ -63,16 +69,13 @@ public class DepositRefundController {
             return R.error("审核状态参数错误");
         }
         
-        // 使用默认管理员ID，通常是1
-        Long auditUserId = 1L;
-        
         depositRefundService.audit(
             depositRefund.getId(), 
             depositRefund.getStatus(), 
-            auditUserId, 
+            userId, 
             depositRefund.getRemark()
         );
         
         return R.ok();
     }
-} 
+}

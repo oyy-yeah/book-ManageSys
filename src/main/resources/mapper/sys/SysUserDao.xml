@@ -48,7 +48,8 @@
 			`email`, 
 			`mobile`, 
 			`status`, 
-			`create_time`
+			`create_time`,
+			`role`
 		)
 		values
 		(
@@ -58,7 +59,8 @@
 			#{email}, 
 			#{mobile}, 
 			#{status}, 
-			#{createTime}
+			#{createTime},
+			#{role}
 		)
 	</insert>
 	 
@@ -70,6 +72,7 @@
 			<if test="email != null">`email` = #{email}, </if>
 			<if test="mobile != null">`mobile` = #{mobile}, </if>
 			<if test="status != null">`status` = #{status}, </if>
+			<if test="role != null">`role` = #{role}, </if>
 		</set>
 		where id = #{id} 
 	</update>

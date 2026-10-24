@@ -26,7 +26,7 @@
   </div>
   <!-- /.login-logo -->
   <div class="login-box-body">
-      <p class="login-box-msg">管理员登录</p>
+      <p class="login-box-msg">后台登录（管理员 / 审核人员）</p>
       <div v-if="error" class="alert alert-danger alert-dismissible">
         <h4 style="margin-bottom: 0px;"><i class="fa fa-exclamation-triangle"></i> {{errorMsg}}</h4>
       </div>
@@ -96,7 +96,16 @@ var vm = new Vue({
 			    success: function(r){
 					if(r.code == 0){//登录成功
                         localStorage.setItem("token", r.token);
-                        parent.location.href ='index.html';
+                        //保存当前账号角色，供菜单过滤与页面权限判断使用
+                        var role = (r.user && r.user.role) ? r.user.role : 'ADMIN';
+                        localStorage.setItem("role", role);
+                        localStorage.setItem("username", r.user ? r.user.username : '');
+                        //审核人员直接进入押金退还审核工作台，管理员进入统计分析首页
+                        if (role === 'REVIEWER') {
+                            parent.location.href = 'member/depositRefund.html';
+                        } else {
+                            parent.location.href = 'index.html';
+                        }
 					}else{
 						vm.error = true;
 						vm.errorMsg = r.msg;

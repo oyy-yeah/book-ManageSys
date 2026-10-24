@@ -48,6 +48,11 @@ public class SysUserEntity implements Serializable {
 	private Date createTime;
 
 	/**
+	 * 角色：ADMIN 管理员 / REVIEWER 审核人员
+	 */
+	private String role;
+
+	/**
 	 * 设置：
 	 * @param id 
 	 */
@@ -157,6 +162,22 @@ public class SysUserEntity implements Serializable {
 	 */
 	public Date getCreateTime() {
 		return createTime;
+	}
+
+	/**
+	 * 设置：角色
+	 * @param role ADMIN 管理员 / REVIEWER 审核人员
+	 */
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	/**
+	 * 获取：角色
+	 * @return String
+	 */
+	public String getRole() {
+		return role;
 	}
 
 }

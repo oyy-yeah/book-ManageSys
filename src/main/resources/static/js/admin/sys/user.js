@@ -2,6 +2,19 @@ $(function () {
   var columns = [
     { checkbox: true, align: "center" },
     { title: "用户名", field: "username" },
+    {
+      title: "角色",
+      field: "role",
+      formatter: function (value, row, index) {
+        if (value === "ADMIN") {
+          return '<span class="label label-primary">管理员</span>';
+        }
+        if (value === "REVIEWER") {
+          return '<span class="label label-warning">审核人员</span>';
+        }
+        return '<span class="label label-default">未知</span>';
+      },
+    },
     { title: "邮箱", field: "email" },
     { title: "手机号", field: "mobile" },
     {
@@ -46,7 +59,7 @@ var vm = new Vue({
     roleList: {},
     user: {
       status: 1,
-      roleIdList: [],
+      role: "ADMIN",
     },
   },
   methods: {
@@ -57,7 +70,7 @@ var vm = new Vue({
       vm.showList = false;
       vm.title = "新增";
       vm.roleList = {};
-      vm.user = { status: 1, roleIdList: [] };
+      vm.user = { status: 1, role: "ADMIN" };
     },
     update: function () {
       var userId = getSelectedVal("id");

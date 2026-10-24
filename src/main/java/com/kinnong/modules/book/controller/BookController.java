@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kinnong.common.utils.Query;
 import com.kinnong.common.utils.R;
+import com.kinnong.common.annotation.RequireRole;
+import com.kinnong.common.constant.RoleConstant;
 import com.kinnong.modules.book.entity.BookEntity;
 import com.kinnong.modules.book.service.BookService;
 
@@ -25,6 +27,7 @@ import com.kinnong.modules.book.service.BookService;
  */
 @RestController
 @RequestMapping("/book")
+@RequireRole(RoleConstant.ADMIN)
 public class BookController {
 	@Autowired
 	private BookService bookService;

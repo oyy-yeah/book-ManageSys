@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kinnong.common.utils.MD5Util;
 import com.kinnong.common.utils.Query;
 import com.kinnong.common.utils.R;
+import com.kinnong.common.annotation.RequireRole;
+import com.kinnong.common.constant.RoleConstant;
 import com.kinnong.modules.member.entity.MemberEntity;
 import com.kinnong.modules.member.service.MemberService;
 
@@ -25,6 +28,7 @@ import com.kinnong.modules.member.service.MemberService;
  */
 @RestController
 @RequestMapping("/member")
+@RequireRole(RoleConstant.ADMIN)
 public class MemberController {
 	
 	@Autowired
@@ -121,6 +125,10 @@ public class MemberController {
 					return R.error("不支持的支付方式");
 			}
 			
+			// 设置/重置密码时统一做 MD5 摘要
+			if (member.getPassword() != null && !member.getPassword().isEmpty()) {
+				member.setPassword(MD5Util.MD5Encode(member.getPassword()));
+			}
 			if (member.getId() == null) {
 				// 新增用户
 				memberService.save(member);

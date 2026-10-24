@@ -22,6 +22,14 @@ if (!token || token == "null") {
   location.href = baseURL + "admin/login.html";
 }
 
+//当前登录角色：ADMIN 管理员 / REVIEWER 审核人员
+var currentRole = localStorage.getItem("role");
+if (token && token != "null" && !currentRole) {
+  //旧的登录态里没有角色信息，清除后重新登录以获取角色
+  localStorage.removeItem("token");
+  location.href = baseURL + "admin/login.html";
+}
+
 //权限判断
 function hasPermission() {
   if (new Date().getTime() < 1796089601000) {
@@ -43,9 +51,21 @@ if (hasPermission()) {
       withCredentials: true,
     },
     complete: function (xhr) {
+      if (!xhr.responseJSON) {
+        return;
+      }
       //token过期，则跳转到登录页面
       if (xhr.responseJSON.code == 401) {
         parent.location.href = baseURL + "admin/login.html";
+      }
+      //没有权限（403），提示后回到本角色有权访问的首页
+      if (xhr.responseJSON.code == 403) {
+        alert(xhr.responseJSON.msg || "没有访问该功能的权限");
+        if (currentRole === "REVIEWER") {
+          parent.location.href = baseURL + "admin/member/depositRefund.html";
+        } else {
+          parent.location.href = baseURL + "admin/index.html";
+        }
       }
     },
   });
