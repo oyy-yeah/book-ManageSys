@@ -259,7 +259,7 @@ Vue.component("main-sidebar", {
           name: "押金退还审核",
           url: "/admin/member/depositRefund.html",
           perms: null,
-          roles: ["REVIEWER", "ADMIN"],
+          roles: ["REVIEWER"],
           type: 1,
           icon: "fa fa-check-square-o",
           orderNum: 0,
