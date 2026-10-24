@@ -1,0 +1,199 @@
+{
+  "info": {
+    "name": "图书借阅管理系统-接口测试",
+    "_postman_id": "0e5f5c6a-2024-4f9f-9d3e-book-manageSys",
+    "description": "《软件工程》期末综合实践 第九组 图书借阅管理系统接口测试集合。使用前先运行“01 登录”目录中的请求，token 会自动写入集合变量。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "adminToken", "value": "" },
+    { "key": "reviewerToken", "value": "" },
+    { "key": "memberToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 登录",
+      "item": [
+        {
+          "name": "管理员登录",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": { "mode": "urlencoded", "urlencoded": [
+              { "key": "username", "value": "admin" },
+              { "key": "password", "value": "123456" }
+            ]},
+            "url": "{{baseUrl}}/sys/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('登录成功', function () { pm.expect(pm.response.json().code).to.eql(0); });",
+              "pm.test('角色为 ADMIN', function () { pm.expect(pm.response.json().user.role).to.eql('ADMIN'); });",
+              "pm.test('响应不含密码', function () { pm.expect(pm.response.json().user.password).to.eql(null); });",
+              "pm.collectionVariables.set('adminToken', pm.response.json().token);"
+            ]}
+          }]
+        },
+        {
+          "name": "审核人员登录",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": { "mode": "urlencoded", "urlencoded": [
+              { "key": "username", "value": "reviewer" },
+              { "key": "password", "value": "reviewer123" }
+            ]},
+            "url": "{{baseUrl}}/sys/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('角色为 REVIEWER', function () { pm.expect(pm.response.json().user.role).to.eql('REVIEWER'); });",
+              "pm.collectionVariables.set('reviewerToken', pm.response.json().token);"
+            ]}
+          }]
+        },
+        {
+          "name": "读者登录",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": { "mode": "urlencoded", "urlencoded": [
+              { "key": "loginName", "value": "test" },
+              { "key": "password", "value": "123456" }
+            ]},
+            "url": "{{baseUrl}}/api/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('读者登录成功', function () { pm.expect(pm.response.json().code).to.eql(0); });",
+              "pm.collectionVariables.set('memberToken', pm.response.json().token);"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "02 角色权限",
+      "item": [
+        {
+          "name": "审核人员访问管理员接口（应 403）",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "token", "value": "{{reviewerToken}}" }],
+            "url": "{{baseUrl}}/sys/user/list"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('返回 403', function () { pm.response.to.have.status(403); });",
+            "pm.test('提示无权限', function () { pm.expect(pm.response.json().msg).to.include('权限'); });"
+          ]}}]
+        },
+        {
+          "name": "管理员访问账号列表（应 200）",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "token", "value": "{{adminToken}}" }],
+            "url": "{{baseUrl}}/sys/user/list"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('返回 200', function () { pm.response.to.have.status(200); });"
+          ]}}]
+        },
+        {
+          "name": "未登录访问受控接口（应 401）",
+          "request": { "method": "GET", "url": "{{baseUrl}}/sys/user/list" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('返回 401', function () { pm.response.to.have.status(401); });"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "03 押金退款审核",
+      "item": [
+        {
+          "name": "审核人员查询退款申请",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "token", "value": "{{reviewerToken}}" }],
+            "url": "{{baseUrl}}/depositRefund/list?page=1&limit=10"
+          }
+        },
+        {
+          "name": "审核通过（id 按实际数据修改）",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "token", "value": "{{reviewerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"id\": 1, \"status\": 1, \"remark\": \"材料齐全，同意退还\"}" },
+            "url": "{{baseUrl}}/depositRefund/audit"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('审核成功或已审核提示', function () { var j = pm.response.json(); pm.expect(j.code === 0 || j.code === 500).to.be.true; });"
+          ]}}]
+        },
+        {
+          "name": "重复审核（应提示不能重复）",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "token", "value": "{{reviewerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"id\": 1, \"status\": 1, \"remark\": \"重复提交\"}" },
+            "url": "{{baseUrl}}/depositRefund/audit"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 读者业务",
+      "item": [
+        {
+          "name": "读者申请退还押金",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "token", "value": "{{memberToken}}" }],
+            "url": "{{baseUrl}}/api/member/delDeposit"
+          }
+        },
+        {
+          "name": "读者押金充值",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "token", "value": "{{memberToken}}" }],
+            "url": "{{baseUrl}}/api/member/addDeposit?deposit=50"
+          }
+        },
+        {
+          "name": "读者注册",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"loginName\":\"reader_test\",\"password\":\"reader123\",\"nickname\":\"测试读者\"}" },
+            "url": "{{baseUrl}}/api/register"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 后台管理",
+      "item": [
+        { "name": "图书列表", "request": { "method": "GET", "header": [{ "key": "token", "value": "{{adminToken}}" }], "url": "{{baseUrl}}/book/list?page=1&limit=10" } },
+        { "name": "借阅单列表", "request": { "method": "GET", "header": [{ "key": "token", "value": "{{adminToken}}" }], "url": "{{baseUrl}}/order/list?page=1&limit=10" } },
+        { "name": "统计分析", "request": { "method": "GET", "header": [{ "key": "token", "value": "{{adminToken}}" }], "url": "{{baseUrl}}/statistics/query" } },
+        { "name": "新增审核人员账号", "request": {
+          "method": "POST",
+          "header": [{ "key": "token", "value": "{{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+          "body": { "mode": "raw", "raw": "{\"username\":\"reviewer2\",\"password\":\"reviewer123\",\"role\":\"REVIEWER\",\"status\":1}" },
+          "url": "{{baseUrl}}/sys/user/save"
+        }}
+      ]
+    }
+  ]
+}
