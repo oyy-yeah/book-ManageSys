@@ -30,14 +30,21 @@ CREATE TABLE `base_member` (
   `password` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '密码',
   `deposit` decimal(10,2) DEFAULT NULL COMMENT '押金',
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `id_card` varchar(18) DEFAULT NULL COMMENT '身份证号',
+  `payment_type` varchar(20) DEFAULT NULL COMMENT '支付类型：wechat-微信，alipay-支付宝，bank-银行卡',
+  `wechat_account` varchar(50) DEFAULT NULL COMMENT '微信账户',
+  `alipay_account` varchar(50) DEFAULT NULL COMMENT '支付宝账户',
+  `bank_card_number` varchar(30) DEFAULT NULL COMMENT '银行卡号',
+  `bank_name` varchar(50) DEFAULT NULL COMMENT '银行名称',
+  `cardholder_name` varchar(50) DEFAULT NULL COMMENT '持卡人姓名',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='会员';
 
 -- ----------------------------
 -- Records of base_member
 -- ----------------------------
-INSERT INTO `base_member` VALUES ('68', '清风', 'https://thirdwx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTK3JVibuZg8wiaKG9ExyVJJT2R4s398eropw2qU7GhJEwgwNB8Y56GWh4dDHPSYTNcJXgmkvz4809SA/132', '0', '微服汇', '18112907714', 'test', '123456', '100.00', '2022-05-16 16:13:19');
-INSERT INTO `base_member` VALUES ('69', 'K.N', 'https://thirdwx.qlogo.cn/mmopen/vi_32/BbEpvJedMxM6ydibzDNzuJmqicrHx3cZ864E9YhZ3Z3480ALf75JzxrdQ75wvbNsGLpA94vKroFHBR3kEIJHFzEg/132', '0', null, null, null, null, null, '2022-12-15 02:32:26');
+INSERT INTO `base_member` VALUES ('68', '清风', 'https://thirdwx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTK3JVibuZg8wiaKG9ExyVJJT2R4s398eropw2qU7GhJEwgwNB8Y56GWh4dDHPSYTNcJXgmkvz4809SA/132', '0', '微服汇', '18112907714', 'test', 'e10adc3949ba59abbe56e057f20f883e', '100.00', '2022-05-16 16:13:19', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `base_member` VALUES ('69', 'K.N', 'https://thirdwx.qlogo.cn/mmopen/vi_32/BbEpvJedMxM6ydibzDNzuJmqicrHx3cZ864E9YhZ3Z3480ALf75JzxrdQ75wvbNsGLpA94vKroFHBR3kEIJHFzEg/132', '0', null, null, null, null, null, '2022-12-15 02:32:26', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for base_member_auth
@@ -285,14 +292,16 @@ CREATE TABLE `sys_user` (
   `mobile` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '手机号',
   `status` tinyint DEFAULT NULL COMMENT '状态  0：禁用   1：正常',
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `role` varchar(20) NOT NULL DEFAULT 'ADMIN' COMMENT '角色：ADMIN 管理员，REVIEWER 审核人员',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `username` (`username`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='管理员';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='后台账号';
 
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES ('1', 'admin', '21232f297a57a5a743894a0e4a801fc3', '2803180149@qq.com', '18021418906', '1', '2021-08-14 11:11:11');
+INSERT INTO `sys_user` VALUES ('1', 'admin', '21232f297a57a5a743894a0e4a801fc3', '2803180149@qq.com', '18021418906', '1', '2021-08-14 11:11:11', 'ADMIN');
+INSERT INTO `sys_user` VALUES ('2', 'reviewer', '86a7a97fe360ee0c51f2f7c2eb95e689', 'reviewer@kinnong.com', NULL, '1', '2025-11-01 10:00:00', 'REVIEWER');
 
 -- ----------------------------
 -- Table structure for book_deposit_refund

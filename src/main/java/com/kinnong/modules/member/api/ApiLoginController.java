@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kinnong.common.annotation.AuthIgnore;
 import com.kinnong.web.utils.JwtUtils;
+import com.kinnong.common.utils.MD5Util;
 import com.kinnong.common.utils.R;
 import com.kinnong.modules.member.entity.MemberEntity;
 import com.kinnong.modules.member.service.MemberService;
@@ -47,13 +48,16 @@ public class ApiLoginController {
 		//用户信息
 		MemberEntity member = memberService.queryByLoginName(loginName);
 
-		//账号不存在、密码错误
-		if(member == null || !member.getPassword().equals(password)) {
+		//账号不存在、密码错误（密码以 MD5 摘要存储，与管理员账号口径一致）
+		if(member == null || member.getPassword() == null
+				|| !member.getPassword().equals(MD5Util.MD5Encode(password))) {
 			return R.error("账号或密码不正确");
 		}
 
 		//生成token
 	    String token = jwtUtils.generateToken(member.getId());
+	    //响应中不返回密码摘要
+	    member.setPassword(null);
 	    Map<String, Object> map = new HashMap<String, Object>();
         map.put("token", token);
 		map.put("member", member);
@@ -72,6 +76,10 @@ public class ApiLoginController {
 		}
 		if(member.getAvatarUrl() == null || "".equals(member.getAvatarUrl())) {
 			member.setAvatarUrl(serverUrl + "/img/avatar.png");
+		}
+		//注册密码使用 MD5 摘要存储
+		if(member.getPassword() != null && !member.getPassword().isEmpty()) {
+			member.setPassword(MD5Util.MD5Encode(member.getPassword()));
 		}
 		member.setCreateTime(new Date());
 		memberService.save(member);

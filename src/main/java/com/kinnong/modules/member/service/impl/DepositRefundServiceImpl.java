@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kinnong.common.exception.RException;
 import com.kinnong.modules.member.dao.DepositRefundDao;
 import com.kinnong.modules.member.dao.MemberDao;
 import com.kinnong.modules.member.entity.DepositRefundEntity;
@@ -65,7 +66,13 @@ public class DepositRefundServiceImpl implements DepositRefundService {
         // 查询申请信息
         DepositRefundEntity refund = depositRefundDao.queryObject(id);
         if (refund == null) {
-            return;
+            throw new RException("退款申请不存在");
+        }
+        if (refund.getStatus() == null || refund.getStatus() != 0) {
+            throw new RException("该申请已审核，不能重复审核");
+        }
+        if (status == null || (status != 1 && status != 2)) {
+            throw new RException("审核状态参数错误");
         }
         
         // 更新申请状态

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kinnong.common.annotation.AuthIgnore;
+import com.kinnong.common.utils.MD5Util;
 import com.kinnong.common.utils.Query;
 import com.kinnong.common.utils.R;
 import com.kinnong.modules.member.entity.DepositRefundEntity;
@@ -218,6 +219,9 @@ public class ApiMemberController {
     @GetMapping("info")
     public R info(@RequestAttribute Long userId){
     	MemberEntity member = memberService.queryObject(userId);
+        if (member != null) {
+            member.setPassword(null);
+        }
         return R.ok().put("member", member);
     }
 	
@@ -228,6 +232,10 @@ public class ApiMemberController {
 	 */
 	@RequestMapping("/update")
 	public R update(@RequestBody MemberEntity member){
+		// 修改密码时统一做 MD5 摘要，避免明文入库
+		if (member.getPassword() != null && !member.getPassword().isEmpty()) {
+			member.setPassword(MD5Util.MD5Encode(member.getPassword()));
+		}
 		memberService.update(member);
 		return R.ok();
 	}
