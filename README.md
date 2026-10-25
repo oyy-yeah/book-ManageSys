@@ -87,7 +87,6 @@ Books-Management
 │   │   ├── book/                  # 图书、分类、借阅历史、书架
 │   │   ├── order/                 # 借阅单、评价、统计
 │   │   ├── advert/                # 广告
-│   │   └── share/                 # 分享配置
 │   └── web/                       # 拦截器、JWT、全局异常、MVC 配置
 ├── src/main/resources/
 │   ├── mapper/                    # MyBatis 映射

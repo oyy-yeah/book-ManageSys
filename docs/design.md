@@ -36,7 +36,7 @@
 │                       数据访问层 Dao/Mapper                      │
 │  MyBatis Mapper XML + BaseDao<T> 通用分页/CRUD                    │
 ├─────────────────────────────────────────────────────────────────┤
-│                     MySQL 8.0（a_book 库，13 张表）               │
+│                     MySQL 8.0（a_book 库，11 张表）               │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -128,9 +128,8 @@ RExceptionHandler -> HTTP 403 {"code":403,"msg":"没有访问该功能的权限"
 
 ### 4.1 设计说明
 
-* 共 13 张表：读者 2 张（`base_member`、`base_member_auth`）、图书 5 张（`book_book`、`book_category`、`book_history`、`book_shelf`、`book_advert`）、
-  借阅 3 张（`book_order`、`book_order_book`、`book_order_evaluation`）、押金 1 张（`book_deposit_refund`）、
-  后台账号 1 张（`sys_user`）、分享配置 1 张（`share_config`）；
+* 共 11 张表：读者 1 张（`base_member`）、图书 5 张（`book_book`、`book_category`、`book_history`、`book_shelf`、`book_advert`）、
+  借阅 3 张（`book_order`、`book_order_book`、`book_order_evaluation`）、押金 1 张（`book_deposit_refund`）、后台账号 1 张（`sys_user`）；
 * 主键统一为自增整型；`sys_user.username` 唯一索引；`book_deposit_refund` 对 `member_id`、`status` 建立查询索引；
 * 金额使用 `decimal(10,2)`；时间使用 `datetime`；角色使用 `varchar(20)` 存枚举值，便于扩展新角色；
 * 冗余设计：审核人用户名通过关联 `sys_user` 查询，不在退款表冗余存储；借阅单金额在生成时固化，避免商品改价影响历史。

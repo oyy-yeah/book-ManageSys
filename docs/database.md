@@ -1,6 +1,6 @@
 # 数据库设计说明（a_book）
 
-数据库：MySQL 8.0，字符集 utf8mb3，共 13 张表。
+数据库：MySQL 8.0，字符集 utf8mb3，共 11 张表。
 
 | 表名 | 说明 | 主要字段 |
 | --- | --- | --- |
@@ -15,7 +15,6 @@
 | book_order_evaluation | 评价 | order_id、member_id、content、score、create_time |
 | book_deposit_refund | 押金退还申请 | member_id、amount、status、apply_time、audit_time、audit_user_id、remark |
 | book_advert | 广告 | pic_url、link、sort、enable、create_time |
-| share_config | 分享配置 | config_key、config_name、config_type、config_value、description、enable |
 
 ## 关键约束与索引
 
