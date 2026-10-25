@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>借阅审核</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/font-awesome@4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div id="app" class="wrapper" v-cloak>
+  <main-header></main-header>
+  <main-sidebar></main-sidebar>
+
+  <div class="content-wrapper">
+    <content-header title="借阅审核"></content-header>
+
+    <section class="content">
+      <div class="box">
+        <div class="box-header with-border">
+          <h3 class="box-title">待审核借阅申请</h3>
+          <button class="btn btn-sm btn-default pull-right" @click="load"><i class="fa fa-refresh"></i> 刷新</button>
+        </div>
+        <div class="box-body">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th>借阅编号</th>
+                <th>读者</th>
+                <th>借阅日期</th>
+                <th>申请时间</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="o in orders" :key="o.id">
+                <td>{{o.orderNumber}}</td>
+                <td>{{o.member && o.member.nickname ? o.member.nickname : (o.memberId || '-')}}</td>
+                <td>{{formatDate(o.startDate)}} ~ {{formatDate(o.endDate)}}</td>
+                <td>{{o.createTime || '-'}}</td>
+                <td><span class="label label-info">待审核</span></td>
+                <td>
+                  <button class="btn btn-xs btn-default" @click="detail(o)">详情</button>
+                  <button class="btn btn-xs btn-success" @click="openAudit(o, true)">通过</button>
+                  <button class="btn btn-xs btn-danger" @click="openAudit(o, false)">拒绝</button>
+                </td>
+              </tr>
+              <tr v-if="!orders.length">
+                <td colspan="6" class="text-center text-muted">暂无待审核的借阅申请</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="text-center">
+            <button class="btn btn-default btn-sm" :disabled="page <= 1" @click="changePage(-1)">上一页</button>
+            <span style="margin: 0 10px;">第 {{page}} 页</span>
+            <button class="btn btn-default btn-sm" :disabled="orders.length < limit" @click="changePage(1)">下一页</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 详情 -->
+      <div class="modal fade" id="detailModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">借阅申请详情</h4></div>
+            <div class="modal-body">
+              <p><b>借阅编号：</b>{{detailOrder.orderNumber}}</p>
+              <p><b>读者：</b>{{detailOrder.member ? detailOrder.member.nickname : '-'}}</p>
+              <p><b>借阅日期：</b>{{formatDate(detailOrder.startDate)}} ~ {{formatDate(detailOrder.endDate)}}</p>
+              <table class="table table-bordered table-condensed">
+                <thead><tr><th>图书</th><th>作者</th><th>数量</th></tr></thead>
+                <tbody>
+                  <tr v-for="b in detailBooks" :key="b.id">
+                    <td>{{b.bookName}}</td>
+                    <td>{{b.author || '-'}}</td>
+                    <td>{{b.num}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 审核 -->
+      <div class="modal fade" id="auditModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">{{auditForm.approve ? '通过借阅申请' : '拒绝借阅申请'}}</h4></div>
+            <div class="modal-body">
+              <p>借阅编号：{{auditForm.orderNumber}}</p>
+              <p v-if="auditForm.approve" class="text-muted">通过后借阅单进入“借阅中”，库存保持扣减。</p>
+              <p v-else class="text-muted">拒绝后借阅单变成“已拒绝”，并自动回补图书库存。</p>
+              <div class="form-group">
+                <label>审核备注</label>
+                <textarea class="form-control" rows="3" v-model="auditForm.remark" placeholder="选填，例如：信息无误 / 库存异常"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+              <button type="button" class="btn btn-primary" @click="submitAudit">确定</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/admin-lte@2.3.8/dist/js/app.js"></script>
+<script src="/js/admin/components.js"></script>
+<script src="/js/admin/common.js"></script>
+<script src="/js/admin/order/borrowAudit.js"></script>
+</body>
+</html>

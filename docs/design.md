@@ -107,7 +107,8 @@ RExceptionHandler -> HTTP 403 {"code":403,"msg":"没有访问该功能的权限"
 | `DepositRefundController` | member | 押金退还申请列表/详情/审核 | `list`、`audit` |
 | `DepositRefundServiceImpl` | member | 审核事务：状态机校验、写审核人、通过后清零押金 | `audit` |
 | `ApiLoginController` | member | 读者注册/登录，密码摘要 | `login`、`register` |
-| `OrderServiceImpl` | order | 借阅下单（扣库存、写历史）、归还（回补库存） | `createOrder`、`returnBook` |
+| `BorrowAuditController` | order | 待审核借阅申请查询、通过/拒绝审核 | `list`、`audit` |
+| `OrderServiceImpl` | order | 借阅下单（扣库存、写历史）、归还（回补库存）、审核（拒绝回补库存） | `createOrder`、`returnBook`、`audit` |
 | `MD5Util` | common.utils | 口令摘要 | `MD5Encode` |
 
 ### 3.3 审核用例顺序设计
@@ -183,6 +184,8 @@ RExceptionHandler -> HTTP 403 {"code":403,"msg":"没有访问该功能的权限"
 | `/sys/user/getInfo`、`/password` | POST | 任意登录账号 | 当前账号信息、修改本人密码 |
 | `/depositRefund/list`、`/info/{id}` | GET | ADMIN、REVIEWER | 押金退还申请查询 |
 | `/depositRefund/audit` | POST | ADMIN、REVIEWER | 审核（记录真实审核人） |
+| `/borrowAudit/list`、`/info/{id}` | GET | ADMIN、REVIEWER | 待审核借阅申请与明细 |
+| `/borrowAudit/audit` | POST | ADMIN、REVIEWER | 借阅审核：通过→借阅中；拒绝→已拒绝并回补库存 |
 | `/api/login`、`/api/register` | POST | 匿名 | 读者登录/注册（密码 MD5） |
 | `/api/order/create` | POST | 读者 | 借阅下单 |
 | `/api/member/delDeposit` | POST | 读者 | 申请退还押金 |

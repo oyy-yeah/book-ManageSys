@@ -69,7 +69,8 @@ public class ApiOrderController {
     	
     	order.setMemberId(userId);
     	order.setCreateTime(new Date());
-    	order.setOrderStatus(1);
+    	// 下单后进入待审核，由审核人员审核通过后才算借阅中
+    	order.setOrderStatus(4);
     	order.setStartDate(new Date());
     	order.setEndDate(DateUtils.add(new Date(), 14));
     	orderService.createOrder(order);
@@ -91,8 +92,9 @@ public class ApiOrderController {
     	if (order == null || !userId.equals(order.getMemberId())) {
     		return R.error("借阅单不存在");
     	}
-    	if (order.getOrderStatus() == null || order.getOrderStatus() != 1) {
-    		return R.error("只有借阅中的订单可以取消");
+    	if (order.getOrderStatus() == null
+    			|| (order.getOrderStatus() != 1 && order.getOrderStatus() != 4)) {
+    		return R.error("只有待审核或借阅中的订单可以取消");
     	}
     	OrderEntity update = new OrderEntity();
     	update.setId(id);

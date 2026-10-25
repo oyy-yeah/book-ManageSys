@@ -83,11 +83,11 @@ function formatMoney(value) {
 }
 
 function orderStatusText(status) {
-  var map = { 0: "已取消", 1: "借阅中", 2: "已归还", 3: "已评价" };
+  var map = { 0: "已取消", 1: "借阅中", 2: "已归还", 3: "已评价", 4: "待审核", 5: "已拒绝" };
   return map[status] || "未知";
 }
 
 function orderStatusCode(status) {
-  var map = { 0: "default", 1: "primary", 2: "warning", 3: "success" };
+  var map = { 0: "default", 1: "primary", 2: "warning", 3: "success", 4: "info", 5: "default" };
   return map[status] || "default";
 }

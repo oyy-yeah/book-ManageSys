@@ -34,4 +34,13 @@ public interface OrderService {
 	List<Map<String, String>> queryOrderCount();
 
 	void returnBook(OrderEntity order);
+
+	/**
+	 * 借阅审核：通过（状态置为借阅中）或拒绝（状态置为已拒绝并回补库存）
+	 *
+	 * @param orderId 借阅单 ID
+	 * @param approve 是否通过
+	 * @param remark  审核备注
+	 */
+	void audit(Integer orderId, boolean approve, String remark);
 }

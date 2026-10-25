@@ -60,9 +60,7 @@
 	      </div>
       </div>
       <div class="callout callout-info" style="padding: 10px; margin-bottom: 0;">
-        <p style="margin: 0 0 4px;"><b>后台账号</b>：admin / 123456（管理员）、reviewer / reviewer123（审核人员）</p>
-        <p style="margin: 0 0 4px;"><b>读者账号</b>：test / 123456（<b>不能登录本后台页面</b>），请从 <a href="/reader/login.html">读者端入口</a> 登录。</p>
-        <p style="margin: 0;">读者端支持：图书借阅、我的借阅、押金充值/退还、个人中心。</p>
+        <p style="margin: 0;">读者请从 <a href="/reader/login.html">读者端入口</a> 登录；审核人员与管理员使用本页登录。</p>
       </div>
 
     <!-- /.social-auth-links -->
@@ -80,8 +78,8 @@
 var vm = new Vue({
 	el:'#app',
 	data:{
-		username: 'admin',
-		password: 'admin',
+		username: '',
+		password: '',
         captcha: '',
 		error: false,
 		errorMsg: '',
@@ -108,7 +106,7 @@ var vm = new Vue({
                         localStorage.setItem("username", r.user ? r.user.username : '');
                         //审核人员直接进入押金退还审核工作台，管理员进入统计分析首页
                         if (role === 'REVIEWER') {
-                            parent.location.href = 'member/depositRefund.html';
+                            parent.location.href = 'order/borrowAudit.html';
                         } else {
                             parent.location.href = 'index.html';
                         }

@@ -54,7 +54,7 @@
                 <td><span class="label" :class="'label-' + orderStatusCode(o.orderStatus)">{{orderStatusText(o.orderStatus)}}</span></td>
                 <td>
                   <button class="btn btn-xs btn-default" @click="detail(o)">详情</button>
-                  <button class="btn btn-xs btn-warning" v-if="o.orderStatus === 1" @click="cancel(o)">取消</button>
+                  <button class="btn btn-xs btn-warning" v-if="o.orderStatus === 1 || o.orderStatus === 4" @click="cancel(o)">取消</button>
                   <button class="btn btn-xs btn-primary" v-if="o.orderStatus === 2" @click="openEval(o)">评价</button>
                 </td>
               </tr>

@@ -92,6 +92,7 @@
 			<if test="totalAmount != null">`total_amount` = #{totalAmount}, </if>
 			<if test="orderStatus != null">`order_status` = #{orderStatus}, </if>
 			<if test="courierNum != null">`courier_num` = #{courierNum}, </if>
+			<if test="remark != null">`remark` = #{remark}, </if>
 			<if test="createTime != null">`create_time` = #{createTime}</if>
 		</set>
 		where id = #{id}

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kinnong.common.exception.RException;
 import com.kinnong.common.utils.NumberUtil;
 import com.kinnong.modules.book.dao.BookDao;
 import com.kinnong.modules.book.dao.HistoryDao;
@@ -110,6 +111,36 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	public List<Map<String, String>> queryOrderCount() {
 		return orderDao.queryOrderCount();
+	}
+
+	@Override
+	@Transactional
+	public void audit(Integer orderId, boolean approve, String remark) {
+		OrderEntity order = orderDao.queryObject(orderId);
+		if (order == null) {
+			throw new RException("借阅单不存在");
+		}
+		if (order.getOrderStatus() == null || order.getOrderStatus() != 4) {
+			throw new RException("该借阅单已审核，不能重复审核");
+		}
+		OrderEntity update = new OrderEntity();
+		update.setId(orderId);
+		update.setRemark(remark);
+		if (approve) {
+			// 通过：借阅单进入借阅中（库存已在下单时扣减）
+			update.setOrderStatus(1);
+			orderDao.update(update);
+		} else {
+			// 拒绝：状态置为已拒绝，并回补下单时扣减的库存
+			update.setOrderStatus(5);
+			orderDao.update(update);
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("orderId", orderId);
+			List<OrderBookEntity> orderBookList = orderBookDao.queryList(map);
+			for (OrderBookEntity orderBook : orderBookList) {
+				bookDao.addStock(orderBook.getBookId(), orderBook.getNum());
+			}
+		}
 	}
 
 	@Override

@@ -18,6 +18,10 @@ $(function () {
 				return '<span class="label label-warning">已归还</span>';
 			}else if(value == 3){
 				return '<span class="label label-danger">已评价</span>';
+			}else if(value == 4){
+				return '<span class="label label-info">待审核</span>';
+			}else if(value == 5){
+				return '<span class="label label-default">已拒绝</span>';
 			}
 		}},
 		{ title: '创建时间', field: 'createTime'}
