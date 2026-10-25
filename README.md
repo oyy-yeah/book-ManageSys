@@ -2,7 +2,7 @@
 
 《软件工程》课程期末综合实践项目 —— 2024 软件工程 4 班 / 第九组。
 
-系统由 **读者端接口（小程序/Web API）** 与 **后台管理端** 两部分组成，基于 Spring Boot + MyBatis + Vue/AdminLTE 实现，
+系统由 **读者端页面（Web）** 与 **后台管理端** 两部分组成，基于 Spring Boot + MyBatis + Vue/AdminLTE 实现，
 覆盖「图书管理 → 读者借阅 → 归还 → 押金管理 → 押金退还审核 → 统计分析」的完整业务闭环。
 
 ## 一、角色与权限
@@ -39,6 +39,19 @@
 | FR-10 | 统计报表 | 统计分析 | 用户数、图书数、借阅量、分类借阅分布图 |
 | FR-11 | 账户管理 | 管理员与角色维护 | 新增后台账号并指定角色（ADMIN/REVIEWER） |
 | FR-12 | 内容管理 | 广告管理 | 轮播广告启停、排序 |
+
+## 二点五、读者端页面
+
+读者使用独立的 Web 页面（无需小程序），入口 <http://localhost:8080/reader/login.html>：
+
+| 页面 | 功能 |
+| --- | --- |
+| 图书借阅 | 广告位、分类筛选、书名/作者检索、借阅下单 |
+| 我的借阅 | 借阅记录、详情、取消借阅（回补库存）、评价已归还订单 |
+| 我的押金 | 押金余额、充值、申请退还、退还申请记录与审核状态 |
+| 个人中心 | 个人资料修改、修改密码 |
+
+读者端接口统一使用 `/api/**`，登录后携带 token；后台管理接口（`/sys`、`/book`、`/order` 等）对读者 token 返回 403，权限相互隔离。
 
 ## 三、技术栈
 
@@ -95,7 +108,7 @@ mysql -uroot -p a_book < sql/2025-11-role-upgrade.sql     # 角色字段与审�
 ### 2. 配置数据源
 
 将 `src/main/resources/application-dev.example.yml` 复制为 `application-dev.yml`，填写本机数据库密码；
-或设置环境变量 `DB_PASSWORD`、`JWT_SECRET`、`WECHAT_APPID`、`WECHAT_APP_SECRET`。
+或设置环境变量 `DB_PASSWORD`、`JWT_SECRET`。
 
 > `application-dev.yml` 已被 `.gitignore` 忽略，不会提交到仓库。
 
@@ -113,7 +126,7 @@ java -jar target/book-server-0.0.1-SNAPSHOT.jar
 * 后台登录：<http://localhost:8080/admin/login.html>
 * 管理员：`admin / 123456`
 * 审核人员：`reviewer / reviewer123`
-* 读者（小程序/接口，**不能登录后台页面**）：`test / 123456`，调用 `POST /api/login`，参数为 `loginName` 与 `password`
+* 读者（读者端页面）：<http://localhost:8080/reader/login.html>，账号 `test / 123456`；也可以调用 `POST /api/login`（参数 `loginName`/`password`）
 
 ### 4. 测试
 

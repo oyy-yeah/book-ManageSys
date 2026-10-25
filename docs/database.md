@@ -5,7 +5,6 @@
 | 表名 | 说明 | 主要字段 |
 | --- | --- | --- |
 | base_member | 读者（普通用户） | nickname、avatar_url、gender、real_name、mobile、login_name、password(MD5)、deposit、create_time、id_card、payment_type、wechat_account、alipay_account、bank_card_number、bank_name、cardholder_name |
-| base_member_auth | 微信授权信息 | member_id、openid、auth_type、create_time |
 | sys_user | 后台账号（管理员/审核人员） | username、password(MD5)、email、mobile、status、role、create_time |
 | book_category | 图书分类 | name、parent_id、sort、create_time |
 | book_book | 图书 | book_name、category_id、author、press、price、stock、status、pic_url、describe、create_time |
@@ -24,7 +23,6 @@
 * `sys_user.username` 唯一索引，避免重复账号；
 * `book_deposit_refund(member_id)`、`book_deposit_refund(status)` 建立普通索引，支撑“我的申请/待审核列表”查询；
 * `book_order.order_number` 唯一编号，用于借阅单外部标识；
-* `base_member_auth.openid` 唯一索引，保证微信授权一对一。
 
 ## 数据初始化
 
