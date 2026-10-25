@@ -113,7 +113,7 @@ java -jar target/book-server-0.0.1-SNAPSHOT.jar
 * 后台登录：<http://localhost:8080/admin/login.html>
 * 管理员：`admin / 123456`
 * 审核人员：`reviewer / reviewer123`
-* 读者（小程序 API）：`test / 123456`
+* 读者（小程序/接口，**不能登录后台页面**）：`test / 123456`，调用 `POST /api/login`，参数为 `loginName` 与 `password`
 
 ### 4. 测试
 
