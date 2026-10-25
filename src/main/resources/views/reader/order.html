@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>我的借阅 - 读者端</title>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/font-awesome@4.7.0/dist/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper" id="app" v-cloak>
+  <reader-header></reader-header>
+  <reader-sidebar></reader-sidebar>
+
+  <div class="content-wrapper">
+    <section class="content-header">
+      <h1>我的借阅</h1>
+      <ol class="breadcrumb">
+        <li><a href="index.html"><i class="fa fa-home"></i> 首页</a></li>
+        <li class="active">我的借阅</li>
+      </ol>
+    </section>
+
+    <section class="content">
+      <div class="box">
+        <div class="box-header with-border">
+          <button class="btn btn-sm" :class="status === '' ? 'btn-primary' : 'btn-default'" @click="switchStatus('')">全部</button>
+          <button class="btn btn-sm" :class="status === 1 ? 'btn-primary' : 'btn-default'" @click="switchStatus(1)">借阅中</button>
+          <button class="btn btn-sm" :class="status === 2 ? 'btn-primary' : 'btn-default'" @click="switchStatus(2)">已归还</button>
+          <button class="btn btn-sm" :class="status === 3 ? 'btn-primary' : 'btn-default'" @click="switchStatus(3)">已评价</button>
+          <button class="btn btn-sm" :class="status === 0 ? 'btn-primary' : 'btn-default'" @click="switchStatus(0)">已取消</button>
+          <button class="btn btn-sm btn-default pull-right" @click="load"><i class="fa fa-refresh"></i> 刷新</button>
+        </div>
+        <div class="box-body">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th>借阅编号</th>
+                <th>借阅日期</th>
+                <th>应还日期</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="o in orders" :key="o.id">
+                <td>{{o.orderNumber}}</td>
+                <td>{{formatDate(o.startDate)}}</td>
+                <td>{{formatDate(o.endDate)}}</td>
+                <td><span class="label" :class="'label-' + orderStatusCode(o.orderStatus)">{{orderStatusText(o.orderStatus)}}</span></td>
+                <td>
+                  <button class="btn btn-xs btn-default" @click="detail(o)">详情</button>
+                  <button class="btn btn-xs btn-warning" v-if="o.orderStatus === 1" @click="cancel(o)">取消</button>
+                  <button class="btn btn-xs btn-primary" v-if="o.orderStatus === 2" @click="openEval(o)">评价</button>
+                </td>
+              </tr>
+              <tr v-if="!orders.length">
+                <td colspan="5" class="text-center text-muted">暂无借阅记录</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="text-center">
+            <button class="btn btn-default btn-sm" :disabled="page <= 1" @click="changePage(-1)">上一页</button>
+            <span style="margin:0 10px;">第 {{page}} 页</span>
+            <button class="btn btn-default btn-sm" :disabled="orders.length < limit" @click="changePage(1)">下一页</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 详情 -->
+      <div class="modal fade" id="detailModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">借阅详情</h4></div>
+            <div class="modal-body">
+              <p><b>借阅编号：</b>{{detailOrder.orderNumber}}</p>
+              <p><b>状态：</b>{{orderStatusText(detailOrder.orderStatus)}}</p>
+              <p><b>借阅日期：</b>{{formatDate(detailOrder.startDate)}} ~ {{formatDate(detailOrder.endDate)}}</p>
+              <table class="table table-bordered table-condensed">
+                <thead><tr><th>图书</th><th>作者</th><th>数量</th></tr></thead>
+                <tbody>
+                  <tr v-for="b in detailBooks" :key="b.id">
+                    <td>{{b.bookName}}</td>
+                    <td>{{b.author || '-'}}</td>
+                    <td>{{b.num}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 评价 -->
+      <div class="modal fade" id="evalModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">评价借阅</h4></div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label>评分</label>
+                <select class="form-control" v-model="evaluation.star">
+                  <option :value="5">5 分（非常满意）</option>
+                  <option :value="4">4 分（满意）</option>
+                  <option :value="3">3 分（一般）</option>
+                  <option :value="2">2 分（不满意）</option>
+                  <option :value="1">1 分（很差）</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>评价内容</label>
+                <textarea class="form-control" rows="3" v-model="evaluation.content" placeholder="说说你的借阅体验"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+              <button type="button" class="btn btn-primary" @click="saveEval">提交评价</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <reader-footer></reader-footer>
+</div>
+
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/admin-lte@2.3.8/dist/js/app.js"></script>
+<script src="/js/reader/common.js"></script>
+<script src="/js/reader/ui.js"></script>
+<script type="text/javascript">
+  var vm = new Vue({
+    el: "#app",
+    data: {
+      status: "",
+      orders: [],
+      page: 1,
+      limit: 10,
+      detailOrder: {},
+      detailBooks: [],
+      evaluation: { orderId: null, star: 5, content: "" },
+    },
+    created: function () {
+      this.load();
+    },
+    methods: {
+      orderStatusText: orderStatusText,
+      orderStatusCode: orderStatusCode,
+      formatDate: function (value) {
+        if (!value) return "-";
+        return String(value).substring(0, 10);
+      },
+      load: function () {
+        var self = this;
+        var params = { page: self.page, limit: self.limit };
+        if (self.status !== "") params.status = self.status;
+        $.get(baseURL + "api/order/list", params, function (r) {
+          if (r.code == 0) self.orders = r.orderList || [];
+        });
+      },
+      switchStatus: function (status) {
+        vm.status = status;
+        vm.page = 1;
+        vm.load();
+      },
+      changePage: function (delta) {
+        var next = vm.page + delta;
+        if (next < 1) return;
+        vm.page = next;
+        vm.load();
+      },
+      detail: function (o) {
+        $.get(baseURL + "api/order/detail", { id: o.id }, function (r) {
+          if (r.code != 0) { alert(r.msg || "查询失败"); return; }
+          vm.detailOrder = r.order || {};
+          vm.detailBooks = (r.order && r.order.orderBookList) ? r.order.orderBookList : [];
+          $("#detailModal").modal("show");
+        });
+      },
+      cancel: function (o) {
+        confirm("确定取消借阅《" + o.orderNumber + "》吗？", function () {
+          $.get(baseURL + "api/order/cancel", { id: o.id }, function (r) {
+            if (r.code == 0) {
+              alert("已取消", function () { vm.load(); });
+            } else {
+              alert(r.msg || "取消失败");
+            }
+          });
+        });
+      },
+      openEval: function (o) {
+        vm.evaluation = { orderId: o.id, star: 5, content: "" };
+        $("#evalModal").modal("show");
+      },
+      saveEval: function () {
+        if (!vm.evaluation.content) { alert("请填写评价内容"); return; }
+        $.ajax({
+          type: "POST",
+          url: baseURL + "api/evaluation/save",
+          contentType: "application/json",
+          data: JSON.stringify(vm.evaluation),
+          success: function (r) {
+            $("#evalModal").modal("hide");
+            if (r.code == 0) {
+              alert("评价成功", function () { vm.load(); });
+            } else {
+              alert(r.msg || "评价失败");
+            }
+          },
+        });
+      },
+    },
+  });
+</script>
+</body>
+</html>

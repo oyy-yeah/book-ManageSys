@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>个人中心 - 读者端</title>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/font-awesome@4.7.0/dist/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper" id="app" v-cloak>
+  <reader-header></reader-header>
+  <reader-sidebar></reader-sidebar>
+
+  <div class="content-wrapper">
+    <section class="content-header">
+      <h1>个人中心</h1>
+      <ol class="breadcrumb">
+        <li><a href="index.html"><i class="fa fa-home"></i> 首页</a></li>
+        <li class="active">个人中心</li>
+      </ol>
+    </section>
+
+    <section class="content">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="box">
+            <div class="box-header with-border"><h3 class="box-title">基本资料</h3></div>
+            <div class="box-body">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">登录账号</label>
+                  <div class="col-sm-8"><p class="form-control-static">{{member.loginName}}</p></div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">昵称</label>
+                  <div class="col-sm-8"><input type="text" class="form-control" v-model="form.nickname" placeholder="昵称"></div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">真实姓名</label>
+                  <div class="col-sm-8"><input type="text" class="form-control" v-model="form.realName" placeholder="真实姓名"></div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">手机号</label>
+                  <div class="col-sm-8"><input type="text" class="form-control" v-model="form.mobile" placeholder="手机号"></div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">押金余额</label>
+                  <div class="col-sm-8"><p class="form-control-static">¥ {{formatMoney(member.deposit)}}</p></div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-offset-3 col-sm-8">
+                    <button type="button" class="btn btn-primary" @click="saveProfile">保存资料</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="box">
+            <div class="box-header with-border"><h3 class="box-title">修改密码</h3></div>
+            <div class="box-body">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">原密码</label>
+                  <div class="col-sm-8"><input type="password" class="form-control" v-model="pwd.oldPassword" placeholder="原密码"></div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">新密码</label>
+                  <div class="col-sm-8"><input type="password" class="form-control" v-model="pwd.newPassword" placeholder="不少于 6 位"></div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">确认新密码</label>
+                  <div class="col-sm-8"><input type="password" class="form-control" v-model="pwd.confirmPassword" placeholder="再次输入新密码"></div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-offset-3 col-sm-8">
+                    <button type="button" class="btn btn-warning" @click="changePassword">修改密码</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <reader-footer></reader-footer>
+</div>
+
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/admin-lte@2.3.8/dist/js/app.js"></script>
+<script src="/js/reader/common.js"></script>
+<script src="/js/reader/ui.js"></script>
+<script type="text/javascript">
+  var vm = new Vue({
+    el: "#app",
+    data: {
+      member: {},
+      form: { nickname: "", realName: "", mobile: "" },
+      pwd: { oldPassword: "", newPassword: "", confirmPassword: "" },
+    },
+    created: function () {
+      this.load();
+    },
+    methods: {
+      formatMoney: formatMoney,
+      load: function () {
+        $.get(baseURL + "api/member/getUserInfo", function (r) {
+          if (r.code != 0) return;
+          vm.member = r.member || {};
+          vm.form.nickname = vm.member.nickname;
+          vm.form.realName = vm.member.realName;
+          vm.form.mobile = vm.member.mobile;
+        });
+      },
+      saveProfile: function () {
+        $.ajax({
+          type: "POST",
+          url: baseURL + "api/member/update",
+          contentType: "application/json",
+          data: JSON.stringify(vm.form),
+          success: function (r) {
+            if (r.code == 0) {
+              localStorage.setItem("readerName", vm.form.nickname || "");
+              alert("保存成功", function () { vm.load(); });
+            } else {
+              alert(r.msg || "保存失败");
+            }
+          },
+        });
+      },
+      changePassword: function () {
+        if (!vm.pwd.oldPassword || !vm.pwd.newPassword) { alert("请填写原密码和新密码"); return; }
+        if (vm.pwd.newPassword.length < 6) { alert("新密码长度不能少于 6 位"); return; }
+        if (vm.pwd.newPassword !== vm.pwd.confirmPassword) { alert("两次输入的新密码不一致"); return; }
+        $.post(baseURL + "api/member/password", {
+          oldPassword: vm.pwd.oldPassword,
+          newPassword: vm.pwd.newPassword,
+        }, function (r) {
+          if (r.code == 0) {
+            vm.pwd = { oldPassword: "", newPassword: "", confirmPassword: "" };
+            alert("密码修改成功，请重新登录", function () { readerLogout(); });
+          } else {
+            alert(r.msg || "修改失败");
+          }
+        });
+      },
+    },
+  });
+</script>
+</body>
+</html>

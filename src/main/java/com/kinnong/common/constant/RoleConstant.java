@@ -21,6 +21,9 @@ public final class RoleConstant {
     /** 审核人员：仅拥有审核类权限 */
     public static final String REVIEWER = "REVIEWER";
 
+    /** 普通用户（读者）：使用读者端页面，账号存储在 base_member 表 */
+    public static final String USER = "USER";
+
     private RoleConstant() {
     }
 
@@ -40,6 +43,9 @@ public final class RoleConstant {
         }
         if (REVIEWER.equals(role)) {
             return "审核人员";
+        }
+        if (USER.equals(role)) {
+            return "普通用户";
         }
         return "普通用户";
     }

@@ -231,13 +231,50 @@ public class ApiMemberController {
 	 * @return
 	 */
 	@RequestMapping("/update")
-	public R update(@RequestBody MemberEntity member){
-		// 修改密码时统一做 MD5 摘要，避免明文入库
-		if (member.getPassword() != null && !member.getPassword().isEmpty()) {
-			member.setPassword(MD5Util.MD5Encode(member.getPassword()));
-		}
-		memberService.update(member);
+	public R update(@RequestBody MemberEntity member, @RequestAttribute("userId") Long userId){
+		// 只允许修改本人基础资料：身份取自 token，忽略请求体中的 id、押金、密码等敏感字段
+		MemberEntity update = new MemberEntity();
+		update.setId(userId);
+		update.setNickname(member.getNickname());
+		update.setRealName(member.getRealName());
+		update.setMobile(member.getMobile());
+		update.setGender(member.getGender());
+		memberService.update(update);
 		return R.ok();
+	}
+
+	/**
+	 * 修改本人密码：校验原密码，新密码使用 MD5 摘要存储
+	 */
+	@RequestMapping("/password")
+	public R password(@RequestAttribute("userId") Long userId, String oldPassword, String newPassword){
+		if (oldPassword == null || newPassword == null || newPassword.length() < 6) {
+			return R.error("新密码长度不能少于 6 位");
+		}
+		MemberEntity current = memberService.queryObject(userId);
+		if (current == null || current.getPassword() == null
+				|| !current.getPassword().equals(MD5Util.MD5Encode(oldPassword))) {
+			return R.error("原密码不正确");
+		}
+		MemberEntity update = new MemberEntity();
+		update.setId(userId);
+		update.setPassword(MD5Util.MD5Encode(newPassword));
+		memberService.update(update);
+		return R.ok();
+	}
+
+	/**
+	 * 本人押金退还申请记录
+	 */
+	@RequestMapping("/refundList")
+	public R refundList(@RequestAttribute("userId") Long userId){
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("memberId", userId);
+		params.put("sidx", "id");
+		params.put("order", "desc");
+		return R.ok()
+				.put("list", depositRefundService.queryList(params))
+				.put("total", depositRefundService.queryTotal(params));
 	}
 	
 	/**

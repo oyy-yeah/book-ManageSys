@@ -114,6 +114,7 @@
 			<if test="avatarUrl != null">`avatar_url` = #{avatarUrl}, </if>
 			<if test="realName != null">`real_name` = #{realName}, </if>
 			<if test="mobile != null">`mobile` = #{mobile}, </if>
+			<if test="password != null">`password` = #{password}, </if>
 			<if test="deposit != null">`deposit` = #{deposit}, </if>
 			<if test="gender != null">`gender` = #{gender}, </if>
 			<if test="idCard != null">`id_card` = #{idCard}, </if>

@@ -55,7 +55,7 @@ public class ApiOrderController {
     public R createOrder(@RequestAttribute("userId") Long userId, @RequestBody OrderEntity order){
     	
     	MemberEntity member = memberService.queryObject(userId);
-    	if(member.getDeposit().compareTo(new BigDecimal(0)) < 1) {
+    	if(member.getDeposit() == null || member.getDeposit().compareTo(new BigDecimal(0)) < 1) {
     		return R.error("您还未交押金");
     	}
     	
@@ -77,17 +77,28 @@ public class ApiOrderController {
     }
     
     @GetMapping("detail")
-    public R detail(Integer id) {
+    public R detail(@RequestAttribute Long userId, Integer id) {
     	OrderEntity order = orderService.queryObject(id);
+    	if (order == null || !userId.equals(order.getMemberId())) {
+    		return R.error("借阅单不存在");
+    	}
     	return R.ok().put("order", order);
     }
     
     @GetMapping("cancel")
-    public R cancel(Integer id) {
-    	OrderEntity order = new OrderEntity();
-    	order.setOrderStatus(0);
-    	order.setId(id);
-    	orderService.update(order);
+    public R cancel(@RequestAttribute Long userId, Integer id) {
+    	OrderEntity order = orderService.queryObject(id);
+    	if (order == null || !userId.equals(order.getMemberId())) {
+    		return R.error("借阅单不存在");
+    	}
+    	if (order.getOrderStatus() == null || order.getOrderStatus() != 1) {
+    		return R.error("只有借阅中的订单可以取消");
+    	}
+    	OrderEntity update = new OrderEntity();
+    	update.setId(id);
+    	update.setOrderStatus(0);
+    	// 取消借阅需回补库存，复用归还逻辑
+    	orderService.returnBook(update);
     	return R.ok();
     }
     

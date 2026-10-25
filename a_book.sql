@@ -47,26 +47,6 @@ INSERT INTO `base_member` VALUES ('68', '清风', 'https://thirdwx.qlogo.cn/mmop
 INSERT INTO `base_member` VALUES ('69', 'K.N', 'https://thirdwx.qlogo.cn/mmopen/vi_32/BbEpvJedMxM6ydibzDNzuJmqicrHx3cZ864E9YhZ3Z3480ALf75JzxrdQ75wvbNsGLpA94vKroFHBR3kEIJHFzEg/132', '0', null, null, null, null, null, '2022-12-15 02:32:26', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- ----------------------------
--- Table structure for base_member_auth
--- ----------------------------
-DROP TABLE IF EXISTS `base_member_auth`;
-CREATE TABLE `base_member_auth` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `member_id` int DEFAULT NULL COMMENT '用户ID',
-  `openid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'openid',
-  `auth_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '授权类型',
-  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `OPENID_UNIQUE` (`openid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='授权';
-
--- ----------------------------
--- Records of base_member_auth
--- ----------------------------
-INSERT INTO `base_member_auth` VALUES ('2', '68', 'o1HEb0bbQgdd1aPNyr2ZXvutSU8U', 'wechat', '2022-05-16 16:13:19');
-INSERT INTO `base_member_auth` VALUES ('3', '69', 'oMc7M5bT2bl6Lq_jHe5YMbqDG4RM', 'wechat', '2022-12-15 02:32:26');
-
--- ----------------------------
 -- Table structure for book_advert
 -- ----------------------------
 DROP TABLE IF EXISTS `book_advert`;

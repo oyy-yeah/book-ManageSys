@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>我的押金 - 读者端</title>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/font-awesome@4.7.0/dist/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper" id="app" v-cloak>
+  <reader-header></reader-header>
+  <reader-sidebar></reader-sidebar>
+
+  <div class="content-wrapper">
+    <section class="content-header">
+      <h1>我的押金</h1>
+      <ol class="breadcrumb">
+        <li><a href="index.html"><i class="fa fa-home"></i> 首页</a></li>
+        <li class="active">我的押金</li>
+      </ol>
+    </section>
+
+    <section class="content">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="small-box bg-green">
+            <div class="inner">
+              <h3>¥ {{formatMoney(member.deposit)}}</h3>
+              <p>当前押金余额</p>
+            </div>
+            <div class="icon"><i class="ion ion-cash"></i></div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="box">
+            <div class="box-header with-border"><h3 class="box-title">押金充值</h3></div>
+            <div class="box-body">
+              <div class="row">
+                <div class="col-sm-6">
+                  <div class="input-group">
+                    <span class="input-group-addon">¥</span>
+                    <input type="number" min="1" step="1" class="form-control" v-model="rechargeAmount" placeholder="请输入充值金额">
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <button class="btn btn-primary" @click="recharge"><i class="fa fa-plus"></i> 充值</button>
+                  <button class="btn btn-warning" @click="applyRefund" :disabled="!member.deposit || member.deposit <= 0">
+                    <i class="fa fa-reply"></i> 申请退还押金
+                  </button>
+                </div>
+              </div>
+              <p class="help-block" style="margin-top:10px;">押金用于借阅担保，退还申请提交后由审核人员在后台审核，审核通过后押金清零。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-header with-border">
+          <h3 class="box-title">退还申请记录</h3>
+          <button class="btn btn-xs btn-default pull-right" @click="loadRefunds"><i class="fa fa-refresh"></i> 刷新</button>
+        </div>
+        <div class="box-body">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th>申请编号</th>
+                <th>退还金额</th>
+                <th>状态</th>
+                <th>申请时间</th>
+                <th>审核时间</th>
+                <th>审核备注</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in refunds" :key="r.id">
+                <td>{{r.id}}</td>
+                <td>¥ {{formatMoney(r.amount)}}</td>
+                <td><span class="label" :class="refundStatusClass(r.status)">{{refundStatusText(r.status)}}</span></td>
+                <td>{{formatDateTime(r.applyTime)}}</td>
+                <td>{{formatDateTime(r.auditTime)}}</td>
+                <td>{{r.remark || '-'}}</td>
+              </tr>
+              <tr v-if="!refunds.length">
+                <td colspan="6" class="text-center text-muted">暂无退还申请</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+  <reader-footer></reader-footer>
+</div>
+
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/admin-lte@2.3.8/dist/js/app.js"></script>
+<script src="/js/reader/common.js"></script>
+<script src="/js/reader/ui.js"></script>
+<script type="text/javascript">
+  var vm = new Vue({
+    el: "#app",
+    data: {
+      member: {},
+      refunds: [],
+      rechargeAmount: "",
+    },
+    created: function () {
+      this.loadMember();
+      this.loadRefunds();
+    },
+    methods: {
+      formatMoney: formatMoney,
+      refundStatusText: function (status) {
+        return { 0: "待审核", 1: "已通过", 2: "已拒绝" }[status] || "-";
+      },
+      refundStatusClass: function (status) {
+        return { 0: "label-warning", 1: "label-success", 2: "label-danger" }[status] || "label-default";
+      },
+      formatDateTime: function (value) {
+        return value ? String(value).replace("T", " ") : "-";
+      },
+      loadMember: function () {
+        $.get(baseURL + "api/member/getUserInfo", function (r) {
+          if (r.code == 0) vm.member = r.member || {};
+        });
+      },
+      loadRefunds: function () {
+        $.get(baseURL + "api/member/refundList", function (r) {
+          if (r.code == 0) vm.refunds = r.list || [];
+        });
+      },
+      recharge: function () {
+        var amount = Number(vm.rechargeAmount);
+        if (!amount || amount <= 0) { alert("请输入大于 0 的充值金额"); return; }
+        $.post(baseURL + "api/member/addDeposit", { deposit: amount }, function (r) {
+          if (r.code == 0) {
+            alert("充值成功", function () {
+              vm.rechargeAmount = "";
+              vm.loadMember();
+            });
+          } else {
+            alert(r.msg || "充值失败");
+          }
+        });
+      },
+      applyRefund: function () {
+        confirm("确定申请退还全部押金 ¥" + formatMoney(vm.member.deposit) + " 吗？提交后需等待审核。", function () {
+          $.post(baseURL + "api/member/delDeposit", {}, function (r) {
+            if (r.code == 0) {
+              alert("申请已提交，请等待审核", function () {
+                vm.loadMember();
+                vm.loadRefunds();
+              });
+            } else {
+              alert(r.msg || "申请失败");
+            }
+          });
+        });
+      },
+    },
+  });
+</script>
+</body>
+</html>

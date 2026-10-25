@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>图书借阅 - 读者端</title>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/font-awesome@4.7.0/dist/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/admin-lte@2.3.8/dist/css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper" id="app" v-cloak>
+  <reader-header></reader-header>
+  <reader-sidebar></reader-sidebar>
+
+  <div class="content-wrapper">
+    <section class="content-header">
+      <h1>图书借阅</h1>
+      <ol class="breadcrumb">
+        <li><a href="index.html"><i class="fa fa-home"></i> 首页</a></li>
+        <li class="active">图书借阅</li>
+      </ol>
+    </section>
+
+    <section class="content">
+      <div v-if="adverts.length" class="box box-default">
+        <div class="box-body">
+          <div class="row">
+            <div class="col-sm-4" v-for="(a, i) in adverts" :key="a.id" v-if="i < 3" style="margin-bottom:10px;">
+              <img :src="a.picUrl" style="width:100%;height:110px;object-fit:cover;border-radius:4px;" alt="广告">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-body">
+          <div class="row">
+            <div class="col-sm-3">
+              <select class="form-control" v-model="q.categoryId">
+                <option value="">全部分类</option>
+                <option v-for="c in categories" :value="c.id">{{c.categoryName}}</option>
+              </select>
+            </div>
+            <div class="col-sm-5">
+              <input type="text" class="form-control" v-model="q.bookName" placeholder="书名 / 作者 / 分类" @keyup.enter="search">
+            </div>
+            <div class="col-sm-4">
+              <button class="btn btn-primary" @click="search"><i class="fa fa-search"></i> 查询</button>
+              <button class="btn btn-default" @click="reset">重置</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-6 col-md-3" v-for="book in books" :key="book.id" style="margin-bottom:15px;">
+          <div class="box box-widget widget-user-2">
+            <div class="widget-user-header bg-light-blue" style="height:60px;padding:10px 15px;">
+              <div class="widget-user-username" style="font-size:15px;margin-left:0;">{{book.bookName}}</div>
+            </div>
+            <div class="box-footer no-padding">
+              <ul class="nav nav-stacked">
+                <li><a>作者 <span class="pull-right">{{book.author || '-'}}</span></a></li>
+                <li><a>出版社 <span class="pull-right">{{book.press || '-'}}</span></a></li>
+                <li><a>库存 <span class="pull-right" :class="book.stock > 0 ? 'text-green' : 'text-red'">{{book.stock || 0}}</span></a></li>
+              </ul>
+              <div style="padding:10px;">
+                <button class="btn btn-primary btn-sm btn-block" :disabled="!book.stock || book.stock < 1 || book.status === 0"
+                        @click="openBorrow(book)">
+                  <i class="fa fa-hand-o-right"></i> 借阅
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-if="!books.length" class="col-sm-12">
+          <div class="callout callout-info">没有查到图书，换个关键字试试。</div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button class="btn btn-default btn-sm" :disabled="page <= 1" @click="changePage(-1)">上一页</button>
+        <span style="margin:0 10px;">第 {{page}} / {{totalPages}} 页（共 {{total}} 本）</span>
+        <button class="btn btn-default btn-sm" :disabled="page >= totalPages" @click="changePage(1)">下一页</button>
+      </div>
+
+      <div class="modal fade" id="borrowModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">确认借阅</h4>
+            </div>
+            <div class="modal-body">
+              <p>确认借阅《{{current.bookName || ''}}》吗？</p>
+              <p class="text-muted">借期 14 天；借阅前请确认已充值押金，归还由管理员在后台办理。</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+              <button type="button" class="btn btn-primary" @click="doBorrow">确认借阅</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <reader-footer></reader-footer>
+</div>
+
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/admin-lte@2.3.8/dist/js/app.js"></script>
+<script src="/js/reader/common.js"></script>
+<script src="/js/reader/ui.js"></script>
+<script type="text/javascript">
+  var vm = new Vue({
+    el: "#app",
+    data: {
+      adverts: [],
+      categories: [],
+      books: [],
+      q: { bookName: "", categoryId: "" },
+      page: 1,
+      limit: 8,
+      total: 0,
+      current: {},
+    },
+    computed: {
+      totalPages: function () {
+        return Math.max(1, Math.ceil(this.total / this.limit));
+      },
+    },
+    created: function () {
+      this.loadAdverts();
+      this.loadCategories();
+      this.loadBooks();
+    },
+    methods: {
+      loadAdverts: function () {
+        $.get(baseURL + "api/advert/list", function (r) {
+          if (r.code == 0) vm.adverts = r.advertList || [];
+        });
+      },
+      loadCategories: function () {
+        $.get(baseURL + "api/category/list", function (r) {
+          if (r.code == 0) vm.categories = r.categoryList || [];
+        });
+      },
+      loadBooks: function () {
+        var self = this;
+        var params = { page: self.page, limit: self.limit };
+        if (self.q.bookName) params.bookName = self.q.bookName;
+        if (self.q.categoryId) params.categoryId = self.q.categoryId;
+        $.get(baseURL + "api/book/list", params, function (r) {
+          if (r.code == 0) {
+            self.books = (r.bookList || []).filter(function (b) { return b.status !== 0; });
+            self.total = r.total || 0;
+          }
+        });
+      },
+      search: function () {
+        vm.page = 1;
+        vm.loadBooks();
+      },
+      reset: function () {
+        vm.q.bookName = "";
+        vm.q.categoryId = "";
+        vm.page = 1;
+        vm.loadBooks();
+      },
+      changePage: function (delta) {
+        var next = vm.page + delta;
+        if (next < 1 || next > vm.totalPages) return;
+        vm.page = next;
+        vm.loadBooks();
+      },
+      openBorrow: function (book) {
+        vm.current = book;
+        $("#borrowModal").modal("show");
+      },
+      doBorrow: function () {
+        $.ajax({
+          type: "POST",
+          url: baseURL + "api/order/create",
+          contentType: "application/json",
+          data: JSON.stringify({ orderBookList: [{ bookId: vm.current.id, num: 1 }] }),
+          success: function (r) {
+            $("#borrowModal").modal("hide");
+            if (r.code == 0) {
+              alert("借阅成功，借期 14 天", function () { vm.loadBooks(); });
+            } else {
+              alert(r.msg || "借阅失败");
+            }
+          },
+          error: function () {
+            $("#borrowModal").modal("hide");
+            alert("借阅失败，请稍后重试");
+          },
+        });
+      },
+    },
+  });
+</script>
+</body>
+</html>

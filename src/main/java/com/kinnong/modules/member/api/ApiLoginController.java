@@ -60,6 +60,8 @@ public class ApiLoginController {
 	    member.setPassword(null);
 	    Map<String, Object> map = new HashMap<String, Object>();
         map.put("token", token);
+        // 读者角色标识，供前端读者端页面使用
+        map.put("role", "USER");
 		map.put("member", member);
 		return R.ok(map);
 	}
